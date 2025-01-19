@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect
 import redis
 import os
 from dotenv import load_dotenv
@@ -43,3 +43,16 @@ def shorten_url():
     shortened_url = f"https://localhost:5000/{next_key}"
 
     return jsonify({"shortened_url": shortened_url}), 200
+
+
+
+@app.route('/<short_key>', methods=['GET'])
+def catch_all(short_key):
+    folder_name = 'short_urls'
+    redis_key = f"{folder_name}/{short_key}"
+
+    long_url = redis_client.get(redis_key)
+    if long_url:
+        return redirect(long_url, code=302)
+    else:
+        return jsonify({"error": "URL not found"}), 404
